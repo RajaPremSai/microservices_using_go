@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	_ "github.com/"
 )
 
 type Repository interface {
@@ -60,7 +59,7 @@ func (r *postgresRepository)ListAccounts(ctx context.Context,skip uint64,take ui
 		skip,
 		take,
 	)
-	is err !=nil{
+	if err !=nil{
 		return nil,err
 	}
 	defer rows.Close()

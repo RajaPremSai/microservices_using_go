@@ -45,6 +45,5 @@ func (s *accountService) GetAccounts(ctx context.Context,skip uint64,take uint64
 		take = 100
 	}
 
-	
 	return s.repository.ListAccounts(ctx,skip,take)
 }
