@@ -3,10 +3,12 @@ package account
 import (
 	"context"
 	"fmt"
+	"net"
 
+	pb "github.com/rajapremsai/go_microservices/account/pb/github.com/rajapremsai/go_microservices/account/pb/account_grpc.pb.go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-)
+) 
 
 type grpcServer struct {
 	service Service
@@ -18,7 +20,7 @@ func ListenGRPC(s Service,port int)error{
 		return err
 	}
 	serv := grpc.NewServer()
-	pb.(serv,)
+	pb.RegisterAccountServiceServer(serv,&grpcServer{s})
 	reflection.Register(serv)
 	return serv.Serve(lis)
 }
