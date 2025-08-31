@@ -3,7 +3,7 @@ package account
 import (
 	"context"
 
-	"github.com/rajapremsai/go_microservices/account/pb/github.com/rajapremsai/go_microservices/account/pb"
+	"github.com/rajapremsai/go_microservices/account/pb"
 	"google.golang.org/grpc"
 )
 
