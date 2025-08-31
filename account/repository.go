@@ -3,7 +3,6 @@ package account
 import (
 	"context"
 	"database/sql"
-
 )
 
 type Repository interface {

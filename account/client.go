@@ -1,9 +1,8 @@
 package account
 
 import (
-	// pb "github.com/rajapremsai/go_microservices/account/pb/github.com/rajapremsai/go_microservices/account/pb/account_grpc.pb.go"
+	"github.com/rajapremsai/go_microservices/account/pb/github.com/rajapremsai/go_microservices/account/pb"
 	"google.golang.org/grpc"
-	"github.com/rajapremsai/go_microservices/account/pb/github.com/rajapremsai/go_microservices/account/pb/account_grpc.pb"
 )
 
 type Client struct{
@@ -11,3 +10,16 @@ type Client struct{
 	service pb.AccountServiceClient
 }
 
+func NewClient(url string)(*Client , error){
+	conn, err := grpc.Dial(url,grpc.WithInsecure())
+	if err!=nil{
+		return nil,err
+	}
+	c := pb.NewAccountServiceClient(conn)
+	return &Client{conn,c},nil
+
+}
+
+func (c *Client)Close(){
+	
+}

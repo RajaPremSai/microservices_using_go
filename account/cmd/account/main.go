@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/tinrab/retry"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rajapremsai/go_microservices/account"
+	"github.com/tinrab/retry"
 )
 
 type Config struct{
