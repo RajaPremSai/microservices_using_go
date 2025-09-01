@@ -2,8 +2,11 @@ package catalog
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"log"
 
+	"golang.org/x/tools/go/analysis/passes/nilfunc"
 	elastic "gopkg.in/olivere/elastic.v5"
 )
 
@@ -46,10 +49,127 @@ func (r *elasticRepository)Close(){
 }
 
 func (r *elasticRepository)PutProduct(ctx context.Context,p Product)error{
+	r.Client.Index().
+	Index("catalog").
+	Type("product").
+	Id(p.ID).
+	BodyJSON(productDocument{
+		Name: p.Name,
+		Description: p.Description,
+		Price: p.Price,
 
+	}).
+	Do(ctx)
+	return err
 }
 
-func (r *elasticRepository)GetProductByID(ctx context.Context,id string)(*Product,error){}
-func (r *elasticRepository)ListProducts(ctx context.Context,skip uint64,take uint64)([]Product,error){}
-func (r *elasticRepository)ListProductsWithIDs(ctx context.Context,ids []string)([]Product,error){}
-func (r *elasticRepository)SearchProducts(ctx context.Context,query string,skip uint64,take uint64)([]Product,error){}
+func (r *elasticRepository)GetProductByID(ctx context.Context,id string)(*Product,error){
+	res,err := r.client.Get().
+	Index("catalog").
+	Type("product").
+	Id(id).
+	Do(ctx)
+
+	if err!=nil{
+		return nil,err
+	}
+	if!res.Found{
+		return nil,ErrNotFound
+	}
+	p := productDocument{}
+	if err = json.Unmarshal(*res.Source,&p);err!=mil{
+		return nil,err
+	}
+	return &Product{
+		ID:id,
+		Name:p.Name,
+		Description: p.Description,
+		Price : p.Price
+	},err
+}
+
+func (r *elasticRepository)ListProducts(ctx context.Context,skip uint64,take uint64)([]Product,error){
+	res,err := client.Search().
+		Index("catalog").
+		Type("product").
+		Query(elastic.NewMatchAllQuery()).
+		From(int(skip).Size()(int(take)))
+		Do(ctx)
+	if err !=nil{
+		log.Println(err)
+		return nil,err
+	}	
+	products := []Product{}
+	for _,hit :=range res.Hits.Hits{
+		p:= productDocument{}
+		if err =json.Unmarshal(*hits.Source,&p);err==nil{
+			products=append(products,Product{
+				ID:hit.ID,
+				Name: p.Name,
+				Description: p.Description
+				Price:p.Price
+			})
+		}
+	}
+	return products,err
+}
+
+func (r *elasticRepository)ListProductsWithIDs(ctx context.Context,ids []string)([]Product,error){
+	items := []*elastic.MultiGetItem{}
+	for _,id :=range ids{
+		items=append(
+			items,
+			elastic.NewMultiGetItem().
+				Index("catalog").
+				Type("product").
+				ID(id,)
+		)
+	}
+
+	res,err := client.MultiGet().
+		Add(items...).
+		Do(ctx)
+	if err !=nil{
+		log.Println(err)
+		return nil,err
+	}
+	products := []Product{}
+	for _, doc := range.Docs{
+		p:=productDocument{}
+		if err =json.Unmarshal(*doc.Source,&p);err ==nil{
+			products=append(products,Product{
+				ID:doc.Id,
+				Name:p.Name,
+				Description
+			})
+		}
+	}
+	return products,nil
+}
+
+
+func (r *elasticRepository)SearchProducts(ctx context.Context,query string,skip uint64,take uint64)([]Product,error){
+	res,err := r.client.Search().
+		Index("catalog").
+		Type("product").
+		Query(elastic.NewMutltiMatchQuery(query,"name","description")).
+		From(int(skip)).Size(int(take))
+		Do(ctx)
+	if err !=nil{
+		log.Println(err)
+		return nil,err
+	}
+	products := []Product{}
+	for _,hit  := range res.Hits.Hits{
+		p := productDocument{}
+		if err =json.Unmarshal("hit.Source",&p);err ==nil{
+			prodcuts = append(products,Product{
+				ID:hit.Id,
+				Name:p.Name,
+				Description: p.Description,
+				Price : p.Price
+			})
+		}
+	}
+	return products,err
+}
