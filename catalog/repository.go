@@ -84,7 +84,7 @@ func (r *elasticRepository)GetProductByID(ctx context.Context,id string)(*Produc
 		ID:id,
 		Name:p.Name,
 		Description: p.Description,
-		Price : p.Price
+		Price : p.Price,
 	},err
 }
 
@@ -106,8 +106,8 @@ func (r *elasticRepository)ListProducts(ctx context.Context,skip uint64,take uin
 			products=append(products,Product{
 				ID:hit.ID,
 				Name: p.Name,
-				Description: p.Description
-				Price:p.Price
+				Description: p.Description,
+				Price:p.Price,
 			})
 		}
 	}
@@ -122,7 +122,7 @@ func (r *elasticRepository)ListProductsWithIDs(ctx context.Context,ids []string)
 			elastic.NewMultiGetItem().
 				Index("catalog").
 				Type("product").
-				ID(id,)
+				ID(id).
 		)
 	}
 
