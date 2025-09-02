@@ -17,7 +17,7 @@ func NewClient(url string)(*Client , error){
 	if err!=nil{
 		return nil,err
 	}
-	c := pb.NewAccountServiceClient(conn)
+	c := pb.NewCatalogServiceClient(conn)
 	return &Client{conn,c},nil
 
 }
@@ -26,19 +26,18 @@ func (c *Client)Close(){
 	c.conn.Close()
 }
 
-func (c *Client)PostAccount(ctx context.Context,name,description string,price float64)(*Product ,error){
-	r,err := c.service.PostAccount{
+func (c *Client)PostProduct(ctx context.Context,name string,description string,price float64)(*Product ,error){
+	r,err := c.service.PostProduct(
 		ctx,
-		&pb.PostAccountRequest{
+		&pb.PostProductRequest{
 			Name:name,
 			Description:description,
 			Price:price,
 		},
-	}
+	)
 	if err !=nil{
 		return nil,err
 	}
-
 	return &Product{
 		ID:r.Product.Id,
 		Name:r.Product.Name,
@@ -65,7 +64,7 @@ func (c *Client)GetProduct(ctx context.Context,id string)(*Product,error){
 		},nil
 }
 
-func (c *Client)GetProducts(ctx context.Context,skip uint64,take uint64,ids []string,query string)(*Product,error){
+func (c *Client)GetProducts(ctx context.Context,skip uint64,take uint64,ids []string,query string)([]Product,error){
 	r,err := c.service.GetProducts(
 		ctx,
 		&pb.GetProductsRequest{
