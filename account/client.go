@@ -57,9 +57,9 @@ func (c *Client)GetAccount(ctx context.Context,id string)(*Account,error){
 func (c *Client)GetAccounts(ctx context.Context,skip uint64,take uint64)([]Account,error){
 	r,err := c.service.GetAccounts(
 		ctx,
-		&pb.GetAccountRequest{
-			skip:skip,
-			take:take,
+		&pb.GetAccountsRequest{
+			Skip:skip,
+			Take:take,
 		},
 	)
 	if err !=nil{

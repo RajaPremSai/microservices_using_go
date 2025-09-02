@@ -11,6 +11,7 @@ import (
 ) 
 
 type grpcServer struct {
+	pb.UnimplementedAccountServiceServer
 	service Service
 }
 
@@ -20,7 +21,10 @@ func ListenGRPC(s Service,port int)error{
 		return err
 	}
 	serv := grpc.NewServer()
-	pb.RegisterAccountServiceServer(serv,&grpcServer{s})
+	pb.RegisterAccountServiceServer(serv,&grpcServer{
+		UnimplementedAccountServiceServer: pb.UnimplementedAccountServiceServer{},
+		service: s,
+	})
 	reflection.Register(serv)
 	return serv.Serve(lis)
 }
@@ -37,7 +41,7 @@ func (s *grpcServer) PostAccount(ctx context.Context,r *pb.PostAccountRequest)(*
 }
 
 func (s *grpcServer)GetAccount(ctx context.Context,r *pb.GetAccountRequest)(*pb.GetAccountResponse,error){
-	a,err := s.service.GetAccount(ctx,r.Name)
+	a,err := s.service.GetAccount(ctx,r.Id)
 	if err !=nil{
 		return nil,err
 	}
@@ -48,19 +52,17 @@ func (s *grpcServer)GetAccount(ctx context.Context,r *pb.GetAccountRequest)(*pb.
 }
 
 func (s *grpcServer)GetAccounts(ctx context.Context,r *pb.GetAccountsRequest)(*pb.GetAccountsResponse,error){
-	a,err := s.service.GetAccounts(ctx,r.Id)
+	res ,err := s.service.GetAccounts(ctx,r.Skip,r.Take)
 	if err !=nil{
 		return nil,err
 	}
 	accounts := []*pb.Account{}
 
-	for _,p :=range res{
+	for _,p := range res{
 		accounts=append(accounts,&pb.Account{
 			Id:p.ID,
 			Name:p.Name,
-
 		})
 	}
-
-	return &pb.GetAccountsResponse{Account: accounts},nil
+	return &pb.GetAccountsResponse{Accounts: accounts},nil
 }
