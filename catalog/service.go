@@ -36,10 +36,10 @@ func (s *catalogService)PostProduct(ctx context.Context,name,description string,
 		Price:price,
 		ID: ksuid.New().String(),
 	}
-	if err :=s.repository.PutProduct(ctx,*p);err !=nil{
+	if err :=s.repository.PutProduct(ctx,p);err !=nil{
 		return nil,err
 	}
-	return p,nil
+	return &p,nil
 }
 
 func (s *catalogService)GetProduct(ctx context.Context,id string)(*Product,error){
