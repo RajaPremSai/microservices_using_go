@@ -96,6 +96,7 @@ func(r *postgresRepository)GetOrdersForAccount(ctx context.Context,accountID str
 	products := []OrderedProduct{}
 
 	for rows.Next(){
+		order := &Order{}
 		if err =rows.Scan(
 			&order.ID,
 			&order.CreatedAt,
@@ -123,7 +124,7 @@ func(r *postgresRepository)GetOrdersForAccount(ctx context.Context,accountID str
 		})
 		*lastOrder=*order
 	}
-	if lastOrder!=nil{
+	if lastOrder != nil{
 		newOrder :=Order{
 			ID:lastOrder.ID,
 			AccountID:lastOrder.AccountID,
