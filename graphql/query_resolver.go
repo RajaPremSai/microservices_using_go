@@ -10,97 +10,95 @@ type queryResolver struct {
 	server *Server
 }
 
-func (r *queryResolver) Account(ctx context.Context,pagination *PaginationInput,id *string)([]*Account,error){
-	ctx,cancel := context.WithTimeout(ctx,3*time.Second)
+func (r *queryResolver) Accounts(ctx context.Context, pagination *PaginationInput, id *string) ([]*Account, error) {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	if id !=nil{
-		r,err := r.server.accountClient.GetAccount(ctx,*id)
-		if err!=nil{
+	if id != nil {
+		r, err := r.server.accountClient.GetAccount(ctx, *id)
+		if err != nil {
 			log.Println(err)
-			return nil,err
+			return nil, err
 		}
 		return []*Account{{
-			ID:r.ID,
-			Name:r.Name,
-		}},nil
+			ID:   r.ID,
+			Name: r.Name,
+		}}, nil
 	}
 
-	skip,take := uint64(0),uint(0)
-	if pagination !=nil{
-		skip,take=pagination.bounds()
+	skip, take := uint64(0), uint64(0)
+	if pagination != nil {
+		skip, take = pagination.bounds()
 	}
-	accountList ,err := r.server.accountClient.GetAccounts(ctx,skip,take)
-	if err!=nil{
+	accountList, err := r.server.accountClient.GetAccounts(ctx, skip, take)
+	if err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
 	var accounts []*Account
-	for _, a := range accountList{
+	for _, a := range accountList {
 		account := &Account{
-			ID:a.ID,
-			Name:a.Name,
+			ID:   a.ID,
+			Name: a.Name,
 		}
-		accounts=append(accounts,account)
+		accounts = append(accounts, account)
 	}
-	return accounts,nil
+	return accounts, nil
 }
 
-func (r *queryResolver) Products(ctx context.Context,pagination *PaginationInput,query *string,id *string)([]*Product,error){
-	ctx,cancel := context.WithTimeout(ctx,3*time.Second)
+func (r *queryResolver) Products(ctx context.Context, pagination *PaginationInput, query *string, id *string) ([]*Product, error) {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	if id !=nil{
-		r,err := r.server.catalogClient.GetProduct(ctx,*id)
-		if err!=nil{
+	if id != nil {
+		r, err := r.server.catalogClient.GetProduct(ctx, *id)
+		if err != nil {
 			log.Println(err)
-			return nil,err
+			return nil, err
 		}
 		return []*Product{{
-			ID:r.ID,
-			Name:r.Name,
+			ID:          r.ID,
+			Name:        r.Name,
 			Description: r.Description,
-			Price:r.Price,
-		}},nil
+			Price:       r.Price,
+		}}, nil
 	}
 
-	skip,take := uint64(0),uint(0)
-	if pagination !=nil{
-		skip,take=pagination.bounds()
+	skip, take := uint64(0), uint64(0)
+	if pagination != nil {
+		skip, take = pagination.bounds()
 	}
 
 	q := ""
-	if query !=nil{
+	if query != nil {
 		q = *query
 	}
 
-	productList ,err := r.server.catalogClient.GetProducts(ctx,skip,take,nil,q)
-	if err!=nil{
+	productList, err := r.server.catalogClient.GetProducts(ctx, skip, take, nil, q)
+	if err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
 
 	var products []*Product
-	for _,a := range productList{
+	for _, a := range productList {
 		products = append(products, &Product{
-			ID:a.ID,
-			Name:a.Name,
+			ID:          a.ID,
+			Name:        a.Name,
 			Description: a.Description,
-			Price: a.Price,
+			Price:       a.Price,
 		})
 	}
-	return products,nil
+	return products, nil
 }
 
-
-func (p PaginationInput)bounds()(uint64,uint64){
-	skipValue :=uint64(0)
-	takeValue := uint64(0)
-	if p.Skip !=nil{
-		skipValue = uint64(*&p.Skip)
+func (p PaginationInput) bounds() (uint64, uint64) {
+	var skipValue, takeValue uint64
+	if p.Skip > 0 {
+		skipValue = uint64(p.Skip)
 	}
-	if p.Take !=nil{
-		takeValue=uint64(*&p.Take)
+	if p.Take > 0 {
+		takeValue = uint64(p.Take)
 	}
-	return skipValue,takeValue
+	return skipValue, takeValue
 }

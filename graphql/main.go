@@ -27,7 +27,8 @@ func main() {
 	}
 
 	http.Handle("/graphql", handler.NewDefaultServer(s.ToExecutableSchema()))
-	http.Handle("/playground", playground.Handler("PREM", "/graphql"))
+	http.Handle("/playground", playground.Handler("GraphQL Playground", "/graphql"))
 
+	log.Println("GraphQL server running at http://localhost:8080/playground")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

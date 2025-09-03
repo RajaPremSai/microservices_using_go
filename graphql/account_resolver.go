@@ -35,7 +35,7 @@ func (r *accountResolver) Orders(ctx context.Context,obj *Account)([]*Order,erro
 		}
 		orders =append(orders, &Order{
 			ID:o.ID,
-			CreatedAt: o.CreatedAt,
+			CreatedAt: o.CreatedAt.String(),
 			TotalPrice: o.TotalPrice,
 			Products:products,
 		})

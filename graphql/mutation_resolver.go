@@ -9,7 +9,7 @@ import (
 	"github.com/rajapremsai/go_microservices/order"
 )
 
-var(
+var (
 	ErrInvalidParameter = errors.New("invalid parameter")
 )
 
@@ -18,64 +18,64 @@ type mutationResolver struct {
 }
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, in AccountInput) (*Account, error) {
-	ctx,cancel := context.WithTimeout(ctx,3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	a,err := r.server.accountClient.PostAccount(ctx,in.Name)
-	if err!=nil{
+	a, err := r.server.accountClient.PostAccount(ctx, in.Name)
+	if err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
 
 	return &Account{
-		ID:a.ID,
-		Name:a.Name,
-	},nil
+		ID:   a.ID,
+		Name: a.Name,
+	}, nil
 }
 
 func (r *mutationResolver) CreateProduct(ctx context.Context, in ProductInput) (*Product, error) {
-	ctx,cancel := context.WithTimeout(ctx,3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	p,err := r.server.catalogClient.PostProduct(ctx,in.Name,in.Description,in.Price)
-	if err!=nil{
+	p, err := r.server.catalogClient.PostProduct(ctx, in.Name, in.Description, in.Price)
+	if err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
 
 	return &Product{
-		ID:p.ID,
-		Name:p.Name,
+		ID:          p.ID,
+		Name:        p.Name,
 		Description: p.Description,
-		Price: p.Price,
-	},nil
+		Price:       p.Price,
+	}, nil
 }
 
 func (r *mutationResolver) CreateOrder(ctx context.Context, in OrderInput) (*Order, error) {
-	ctx,cancel := context.WithTimeout(ctx,3*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
 	var products []order.OrderedProduct
 
-	for _,p :=range in.Products{
-		if p.Quantity <=0 {
-			return nil,ErrInvalidParameter
+	for _, p := range in.Products {
+		if p.Quantity <= 0 {
+			return nil, ErrInvalidParameter
 		}
-		products=append(products, order.OrderedProduct{
-			ID:p.ID,
+		products = append(products, order.OrderedProduct{
+			ID:       p.ID,
 			Quantity: uint32(p.Quantity),
 		})
 	}
 
-	o,err := r.server.orderClient.PostOrder(ctx,in.AccountID,products)
-	if err!=nil{
+	o, err := r.server.orderClient.PostOrder(ctx, in.AccountID, products)
+	if err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
 
 	return &Order{
-		ID:o.ID,
-		CreatedAt: o.CreatedAt,
+		ID:         o.ID,
+		CreatedAt:  o.CreatedAt.String(),
 		TotalPrice: o.TotalPrice,
-	},nil
+	}, nil
 }
