@@ -4,33 +4,30 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/99designs/gqlgen/handler"
 	"github.com/kelseyhightower/envconfig"
 )
 
-type AppCongfig struct {
+type AppConfig struct {
 	AccountURL string `envconfig:"ACCOUNT_SERVICE_URL"`
 	CatalogURL string `envconfig:"CATALOG_SERVICE_URL"`
 	OrderURL   string `envconfig:"ORDER_SERVICE_URL"`
 }
 
 func main() {
-	var cfg AppCongfig
-	err := envconfig.Process("", &cfg)
+	var cfg AppConfig
+	if err := envconfig.Process("", &cfg); err != nil {
+		log.Fatal(err)
+	}
+
+	s, err := NewGraphQLServer(cfg.AccountURL, cfg.CatalogURL, cfg.OrderURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s,err:=NewGraphQLServer(cfg.AccountURL,cfg.CatalogURL,cfg.OrderURL)
-	if err!=nil{
-		log.Fatal(err)
-	}
+	http.Handle("/graphql", handler.NewDefaultServer(s.ToExecutableSchema()))
+	http.Handle("/playground", playground.Handler("PREM", "/graphql"))
 
-	http.Handle("/graphql",handler.GraphQL(s.ToExecutableSchema()))
-	http.Handle("/playground",playground.Handler("PREM","/graphql"))
-
-	log.Fatal(http.ListenAndServe(":8080",nil))
-
-
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
