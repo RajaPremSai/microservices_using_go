@@ -5,10 +5,10 @@ go 1.23.2
 require (
 	github.com/99designs/gqlgen v0.17.78
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lib/pq v1.10.9
 	github.com/segmentio/ksuid v1.0.4
 	github.com/tinrab/retry v1.0.0
 	github.com/vektah/gqlparser/v2 v2.5.30
-	golang.org/x/tools v0.35.0
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/olivere/elastic.v5 v5.0.86

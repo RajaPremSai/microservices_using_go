@@ -1,10 +1,92 @@
-
-
 services:
-  order:
-  catalog:
-  order:
-  graphql:
   account_db:
-  catalog_db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: account_user
+      POSTGRES_PASSWORD: account_pass
+      POSTGRES_DB: account_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - account_db_data:/var/lib/postgresql/data
+      - ./account/up.sql:/docker-entrypoint-initdb.d/01-init.sql
+
   order_db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_pass
+      POSTGRES_DB: order_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+      - ./order/up.sql:/docker-entrypoint-initdb.d/01-init.sql
+
+  catalog_db:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.16
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - catalog_es_data:/usr/share/elasticsearch/data
+
+  account:
+    build:
+      context: .
+      dockerfile: account/app.dockerfile
+    environment:
+      - DATABASE_URL=postgres://account_user:account_pass@account_db:5432/account_db?sslmode=disable
+    depends_on:
+      - account_db
+    ports:
+      - "8081:8080"
+
+  order:
+    build:
+      context: .
+      dockerfile: order/app.dockerfile
+    environment:
+      - DATABASE_URL=postgres://order_user:order_pass@order_db:5432/order_db?sslmode=disable
+      - ACCOUNT_SERVICE_URL=account:8080
+      - CATALOG_SERVICE_URL=catalog:8080
+    depends_on:
+      - order_db
+      - account
+      - catalog
+    ports:
+      - "8082:8080"
+
+  catalog:
+    build:
+      context: .
+      dockerfile: catalog/app.dockerfile
+    environment:
+      - ELASTICSEARCH_URL=http://catalog_db:9200
+    depends_on:
+      - catalog_db
+    ports:
+      - "8083:8080"
+
+  graphql:
+    build:
+      context: .
+      dockerfile: graphql/app.dockerfile
+    environment:
+      - ACCOUNT_SERVICE_URL=account:8080
+      - CATALOG_SERVICE_URL=catalog:8080
+      - ORDER_SERVICE_URL=order:8080
+    depends_on:
+      - account
+      - order
+      - catalog
+    ports:
+      - "8080:8080"
+
+volumes:
+  account_db_data:
+  order_db_data:
+  catalog_es_data:

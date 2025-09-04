@@ -11,81 +11,81 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type grpcServer struct{
+type grpcServer struct {
 	pb.UnimplementedCatalogServiceServer
 	service Service
 }
 
-func ListenGRPC(s Service,port int)error{
-	lis,err := net.Listen("tcp",fmt.Sprintf(":%d",port))
-	if err!=nil{
+func ListenGRPC(s Service, port int) error {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
 		return err
 	}
 	serv := grpc.NewServer()
-	pb.RegisterCatalogServiceServer(serv,&grpcServer{
+	pb.RegisterCatalogServiceServer(serv, &grpcServer{
 		UnimplementedCatalogServiceServer: pb.UnimplementedCatalogServiceServer{},
-		service: s,
+		service:                           s,
 	})
 	reflection.Register(serv)
 	return serv.Serve(lis)
 }
 
-func (s *grpcServer) PostAccount(ctx context.Context,r *pb.PostProductRequest)(*pb.PostProductResponse,error){
-	p,err := s.service.PostProduct(ctx,r.Name,r.Description,r.Price)
-	if err!=nil{ 
+func (s *grpcServer) PostProduct(ctx context.Context, r *pb.PostProductRequest) (*pb.PostProductResponse, error) {
+	p, err := s.service.PostProduct(ctx, r.Name, r.Description, r.Price)
+	if err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
-	return &pb.PostProductResponse{Product : &pb.Product{
-		Id:p.ID,
-		Name :p.Name,
-		Description : p.Description,
-		Price:p.Price,
-	}},nil
+	return &pb.PostProductResponse{Product: &pb.Product{
+		Id:          p.ID,
+		Name:        p.Name,
+		Description: p.Description,
+		Price:       p.Price,
+	}}, nil
 }
 
-func (s *grpcServer) GetProduct(ctx context.Context,r *pb.GetProductRequest)(*pb.GetProductResponse,error){
-	p,err := s.service.GetProduct(ctx,r.Id)
-	if err !=nil{
+func (s *grpcServer) GetProduct(ctx context.Context, r *pb.GetProductRequest) (*pb.GetProductResponse, error) {
+	p, err := s.service.GetProduct(ctx, r.Id)
+	if err != nil {
 		log.Println(err)
-		return nil,err
+		return nil, err
 	}
 	return &pb.GetProductResponse{
-		Product:&pb.Product{
-			Id:p.ID,
-			Name:p.Name,
-			Description:p.Description,
-			Price:p.Price,
+		Product: &pb.Product{
+			Id:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       p.Price,
 		},
-	},nil
+	}, nil
 }
 
-func (s *grpcServer)GetProducts(ctx context.Context,r *pb.GetProductsRequest)(*pb.GetProductsResponse,error){
+func (s *grpcServer) GetProducts(ctx context.Context, r *pb.GetProductsRequest) (*pb.GetProductsResponse, error) {
 	var res []Product
 	var err error
-	if r.Query != ""{
-		res,err = s.service.SearchProducts(ctx,r.Query,r.Skip,r.Take)
-	}else if len(r.Ids) !=0{
-		res,err=s.service.GetProductByIDs(ctx , r.Ids)
-	}else{
-		res,err = s.service.GetProducts(ctx,r.Skip,r.Take)
+	if r.Query != "" {
+		res, err = s.service.SearchProducts(ctx, r.Query, r.Skip, r.Take)
+	} else if len(r.Ids) != 0 {
+		res, err = s.service.GetProductByIDs(ctx, r.Ids)
+	} else {
+		res, err = s.service.GetProducts(ctx, r.Skip, r.Take)
 	}
 
-	if err!=nil{
+	if err != nil {
 		log.Println(err)
 	}
 
 	products := []*pb.Product{}
-	for _,p := range res {
-		products =append(
+	for _, p := range res {
+		products = append(
 			products,
 			&pb.Product{
-				Id:p.ID,
-				Name:p.Name,
-				Description:p.Description,
-				Price:p.Price,
+				Id:          p.ID,
+				Name:        p.Name,
+				Description: p.Description,
+				Price:       p.Price,
 			},
 		)
 	}
-	return &pb.GetProductsResponse{Products:products},nil
+	return &pb.GetProductsResponse{Products: products}, nil
 }

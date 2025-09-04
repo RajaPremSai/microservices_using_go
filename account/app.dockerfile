@@ -1,22 +1,26 @@
 # Stage 1: Build
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
 WORKDIR /app
 
-RUN apk --no-cache add build-base ca-certificates
+RUN apk --no-cache add build-base ca-certificates git
 
 COPY go.mod go.sum ./
-COPY vendor ./vendor
-COPY pkg ./pkg
-COPY internal ./internal
-COPY cmd ./cmd
+RUN go mod download
 
-RUN go build -mod=vendor -o app ./cmd/account/main.go
+# Copy entire repository to preserve module paths
+COPY . .
+
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+RUN mkdir -p /out \
+ && go build -trimpath -ldflags "-s -w" -o /out/account ./account/cmd/account/main.go
 
 # Stage 2: Runtime
 FROM alpine:3.18
 WORKDIR /usr/bin
 
-COPY --from=builder /app/app .
+RUN apk --no-cache add ca-certificates
+
+COPY --from=builder /out/account /usr/local/bin/account
 
 EXPOSE 8080
 
@@ -24,4 +28,4 @@ EXPOSE 8080
 RUN adduser -D appuser
 USER appuser
 
-ENTRYPOINT ["./app"]
+ENTRYPOINT ["/usr/local/bin/account"]
